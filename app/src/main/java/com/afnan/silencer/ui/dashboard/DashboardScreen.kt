@@ -21,8 +21,9 @@ import androidx.compose.ui.unit.sp
 import com.afnan.silencer.data.RingerMode
 import com.afnan.silencer.service.RingerModeController
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(viewModel: DashboardViewModel) {
+fun DashboardScreen(viewModel: DashboardViewModel, onManageSchedules: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val controller = remember { RingerModeController(context) }
@@ -30,107 +31,116 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
     var showOverrideDialog by remember { mutableStateOf(false) }
     var selectedOverrideMode by remember { mutableStateOf(RingerMode.NORMAL) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Dashboard",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 1. Current Mode Display
-        CurrentModeCard(uiState.currentMode)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 2. Next Change Info
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Silencer") },
+                actions = {
+                    IconButton(onClick = onManageSchedules) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Manage Schedules")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Next Update", style = MaterialTheme.typography.labelLarge)
-                Text(text = uiState.nextChangeTime, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-                if (uiState.nextChangeLabel.isNotEmpty()) {
-                    Text(text = uiState.nextChangeLabel, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "Dashboard",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-        // 3. Manual Override Buttons
-        Text(text = "Manual Overrides", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Button(
-                onClick = {
-                    selectedOverrideMode = RingerMode.SILENT
-                    showOverrideDialog = true
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 1. Current Mode Display
+            CurrentModeCard(uiState.currentMode)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 2. Next Change Info
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-                Text("Force Silent")
-            }
-            Button(
-                onClick = {
-                    selectedOverrideMode = RingerMode.NORMAL
-                    showOverrideDialog = true
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Next Update", style = MaterialTheme.typography.labelLarge)
+                    Text(text = uiState.nextChangeTime, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                    if (uiState.nextChangeLabel.isNotEmpty()) {
+                        Text(text = uiState.nextChangeLabel, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 3. Manual Override Buttons
+            Text(text = "Manual Overrides", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("Force Normal")
+                Button(
+                    onClick = {
+                        selectedOverrideMode = RingerMode.SILENT
+                        showOverrideDialog = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Force Silent")
+                }
+                Button(
+                    onClick = {
+                        selectedOverrideMode = RingerMode.NORMAL
+                        showOverrideDialog = true
+                    }
+                ) {
+                    Text("Force Normal")
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        // 4. Small Preview of Schedules
-        Text(
-            text = "Active Schedules (Preview)",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        if (uiState.activeSchedules.isEmpty()) {
-            Text("No schedules set up yet.", color = MaterialTheme.colorScheme.outline)
-        } else {
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                items(uiState.activeSchedules) { schedule ->
-                    ListItem(
-                        headlineContent = { Text("${schedule.targetMode}") },
-                        supportingContent = { Text("Days: ${schedule.daysOfWeek}") }
-                    )
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // 4. Small Preview of Schedules
+            Text(
+                text = "Active Schedules (Preview)",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            if (uiState.activeSchedules.isEmpty()) {
+                Text("No schedules set up yet.", color = MaterialTheme.colorScheme.outline)
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    items(uiState.activeSchedules) { schedule ->
+                        ListItem(
+                            headlineContent = { Text("${schedule.targetMode}") },
+                            supportingContent = { Text("Days: ${schedule.daysOfWeek}") }
+                        )
+                    }
                 }
             }
         }
-    }
 
-    // Override Duration Dialog
-    if (showOverrideDialog) {
-        OverrideDurationDialog(
-            onDismiss = { showOverrideDialog = false },
-            onConfirm = { durationMinutes ->
-                controller.setMode(selectedOverrideMode)
-                viewModel.updateCurrentMode(selectedOverrideMode)
-                showOverrideDialog = false
-                
-                // Explain simply how you'd implement "auto-resume":
-                // You would use AlarmManager.setExact() to schedule a broadcast 
-                // that fires after 'durationMinutes'. That broadcast would then 
-                // trigger a re-evaluation of the current schedules to set the 
-                // ringer mode back to what it should be.
-            }
-        )
+        // Override Duration Dialog
+        if (showOverrideDialog) {
+            OverrideDurationDialog(
+                onDismiss = { showOverrideDialog = false },
+                onConfirm = { durationMinutes ->
+                    controller.setMode(selectedOverrideMode)
+                    viewModel.updateCurrentMode(selectedOverrideMode)
+                    showOverrideDialog = false
+                }
+            )
+        }
     }
 }
 
