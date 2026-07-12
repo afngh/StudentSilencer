@@ -8,27 +8,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.afnan.silencer.data.RingerMode
-import com.afnan.silencer.service.RingerModeController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.afnan.silencer.data.AppDatabase
+import com.afnan.silencer.data.ScheduleRepository
+import com.afnan.silencer.ui.dashboard.DashboardScreen
+import com.afnan.silencer.ui.dashboard.DashboardViewModel
 import com.afnan.silencer.ui.onboarding.PermissionOnboardingScreen
 import com.afnan.silencer.ui.theme.SilencerTheme
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,15 +29,7 @@ class MainActivity : ComponentActivity() {
             SilencerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
-                        var showTestUI by remember { mutableStateOf(false) }
-
-                        if (!showTestUI) {
-                            PermissionOnboardingScreen(
-                                onContinue = { showTestUI = true }
-                            )
-                        } else {
-                            TestRingerScreen()
-                        }
+                        MainNavigation()
                     }
                 }
             }
@@ -54,45 +37,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Simple navigation logic for a beginner.
+ * We use a simple 'state' variable to decide which screen to show.
+ * This is easier than a full NavHost for a small app.
+ */
 @Composable
-fun TestRingerScreen() {
+fun MainNavigation() {
     val context = LocalContext.current
-    val controller = remember { RingerModeController(context) }
+    
+    // Check if we should show the dashboard or onboarding
+    // For now, we'll use a simple state that the onboarding screen can trigger.
+    var showDashboard by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Test Ringer Mode Controller", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(24.dp))
+    if (!showDashboard) {
+        PermissionOnboardingScreen(
+            onContinue = { showDashboard = true }
+        )
+    } else {
+        // Initialize our ViewModel with the Repository
+        val database = AppDatabase.getDatabase(context)
+        val repository = ScheduleRepository(database.scheduleDao())
         
-        Button(onClick = { controller.setMode(RingerMode.SILENT) }) {
-            Text("Set to SILENT")
-        }
-        Button(onClick = { controller.setMode(RingerMode.VIBRATE) }) {
-            Text("Set to VIBRATE")
-        }
-        Button(onClick = { controller.setMode(RingerMode.DND) }) {
-            Text("Set to DND")
-        }
-        Button(onClick = { controller.setMode(RingerMode.NORMAL) }) {
-            Text("Set to NORMAL")
-        }
-    }
-}
-
-@Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
-    Text(
-        text = "Welcome to SilentScheduler!\nScaffolding is ready.",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    SilencerTheme {
-        HomeScreen()
+        val dashboardViewModel: DashboardViewModel = viewModel(
+            factory = object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return DashboardViewModel(repository) as T
+                }
+            }
+        )
+        
+        DashboardScreen(viewModel = dashboardViewModel)
     }
 }
