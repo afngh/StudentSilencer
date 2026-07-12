@@ -1,5 +1,6 @@
 package com.afnan.silencer.ui.schedule
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.afnan.silencer.data.RingerMode
 
@@ -19,6 +21,7 @@ fun ScheduleEditScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     // Load data once when screen opens
     LaunchedEffect(scheduleId) {
@@ -27,7 +30,10 @@ fun ScheduleEditScreen(
 
     // Go back once saved
     LaunchedEffect(uiState.isSaved) {
-        if (uiState.isSaved) onSaveSuccess()
+        if (uiState.isSaved) {
+            Toast.makeText(context, "Schedule saved!", Toast.LENGTH_SHORT).show()
+            onSaveSuccess()
+        }
     }
 
     Scaffold(

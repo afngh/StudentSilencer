@@ -4,10 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -153,7 +150,15 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(8.dp))
             
             if (uiState.activeSchedules.isEmpty()) {
-                Text("No schedules set up yet.", color = MaterialTheme.colorScheme.outline)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("No schedules set up yet.", color = MaterialTheme.colorScheme.outline)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = onManageSchedules) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Your First Schedule")
+                    }
+                }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     items(uiState.activeSchedules) { schedule ->
