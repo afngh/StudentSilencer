@@ -12,37 +12,36 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * This is the "Ear" of the app. It waits for the AlarmManager to shout: 
- * "TIME'S UP!" and then it acts.
- */
 class ScheduleTriggerReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val scheduleId = intent.getIntExtra("SCHEDULE_ID", -1)
         val isStart = intent.getBooleanExtra("IS_START", true)
 
+        Log.d("SilentScheduler", "Alarm Received! ID: $scheduleId, IsStart: $isStart")
+
         if (scheduleId == -1) return
 
-        // Since we need to talk to the database, we use a Coroutine
         CoroutineScope(Dispatchers.IO).launch {
             val db = AppDatabase.getDatabase(context)
             val schedule = db.scheduleDao().getScheduleById(scheduleId)
 
-            schedule?.let {
+            if (schedule != null && schedule.isEnabled) {
                 val controller = RingerModeController(context)
                 
                 if (isStart) {
-                    Log.d("Silencer", "Starting schedule: ${it.id}")
-                    controller.setMode(it.targetMode)
+                    Log.d("SilentScheduler", "Applying Target Mode: ${schedule.targetMode}")
+                    controller.setMode(schedule.targetMode)
                 } else {
-                    Log.d("Silencer", "Ending schedule: ${it.id}")
+                    Log.d("SilentScheduler", "Schedule Ended. Returning to NORMAL")
                     controller.setMode(RingerMode.NORMAL)
                 }
 
-                // Re-schedule for next week
+                // IMPORTANT: Re-schedule for the next occurrence (next week)
                 val scheduler = ScheduleAlarmScheduler(context)
-                scheduler.schedule(it)
+                scheduler.schedule(schedule)
+            } else {
+                Log.d("SilentScheduler", "Schedule $scheduleId not found or disabled. Skipping.")
             }
         }
     }

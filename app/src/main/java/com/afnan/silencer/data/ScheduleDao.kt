@@ -20,7 +20,7 @@ interface ScheduleDao {
     fun getAllSchedules(): Flow<List<Schedule>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSchedule(schedule: Schedule)
+    suspend fun insertSchedule(schedule: Schedule): Long
 
     @Update
     suspend fun updateSchedule(schedule: Schedule)

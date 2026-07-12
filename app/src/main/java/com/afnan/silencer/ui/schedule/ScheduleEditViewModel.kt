@@ -104,21 +104,18 @@ class ScheduleEditViewModel(
         )
 
         viewModelScope.launch {
-            if (state.isNew) {
-                // Room generates ID for new schedules (id=0)
-                repository.insert(schedule)
-                // Note: We'd normally need the generated ID to schedule the alarm.
-                // For simplicity in this beginner guide, we'll suggest the user 
-                // restarts the app or we can use a more advanced approach.
-                // Actually, let's fix it: We need to re-fetch or use the return value.
-                // But for now, we'll just insert and let the "allSchedules" flow 
-                // handle it or suggest a simple workaround.
+            val finalSchedule = if (state.isNew) {
+                val newId = repository.insert(schedule)
+                android.util.Log.d("SilentScheduler", "Inserted new schedule with ID: $newId")
+                schedule.copy(id = newId.toInt())
             } else {
                 repository.update(schedule)
+                android.util.Log.d("SilentScheduler", "Updated existing schedule with ID: ${schedule.id}")
+                schedule
             }
             
-            // Register/Update the actual Android Alarm
-            alarmScheduler.schedule(schedule)
+            // Register/Update the actual Android Alarm with the CORRECT ID
+            alarmScheduler.schedule(finalSchedule)
             
             _uiState.value = _uiState.value.copy(isSaved = true)
         }

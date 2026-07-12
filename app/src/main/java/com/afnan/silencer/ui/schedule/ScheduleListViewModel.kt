@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+import kotlinx.coroutines.flow.onEach
+
 /**
  * ViewModel for the list of schedules.
  */
@@ -20,6 +22,9 @@ class ScheduleListViewModel(
 
     // Automatically exposes the list from the database to the UI
     val schedules: StateFlow<List<Schedule>> = repository.allSchedules
+        .onEach { list ->
+            android.util.Log.d("SilentScheduler", "List updated. Total schedules: ${list.size}")
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
