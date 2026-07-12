@@ -82,6 +82,16 @@ fun ScheduleEditScreen(
                 onModeSelected = { viewModel.updateMode(it) }
             )
 
+            // 4. Error Message (if any)
+            uiState.error?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             Button(

@@ -12,9 +12,7 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,8 +50,32 @@ fun ScheduleListScreen(
         }
     ) { padding ->
         if (schedules.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No schedules yet. Tap + to start!")
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "No schedules set up yet.",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Text(
+                        "Tap the + button to create your first rule!",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -62,12 +84,42 @@ fun ScheduleListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(schedules) { schedule ->
+                    var showDeleteDialog by remember { mutableStateOf(false) }
+                    var scheduleToDelete by remember { mutableStateOf<Schedule?>(null) }
+
                     ScheduleCard(
                         schedule = schedule,
                         onToggle = { enabled -> viewModel.toggleSchedule(schedule, enabled) },
-                        onDelete = { viewModel.deleteSchedule(schedule) },
+                        onDelete = { 
+                            scheduleToDelete = schedule
+                            showDeleteDialog = true
+                        },
                         onClick = { onEditSchedule(schedule.id) }
                     )
+
+                    if (showDeleteDialog && scheduleToDelete != null) {
+                        AlertDialog(
+                            onDismissRequest = { showDeleteDialog = false },
+                            title = { Text("Delete Schedule?") },
+                            text = { Text("Are you sure you want to remove this schedule? This cannot be undone.") },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        scheduleToDelete?.let { viewModel.deleteSchedule(it) }
+                                        showDeleteDialog = false
+                                    },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                ) {
+                                    Text("Delete")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDeleteDialog = false }) {
+                                    Text("Cancel")
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

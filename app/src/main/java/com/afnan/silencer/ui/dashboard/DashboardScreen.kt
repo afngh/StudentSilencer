@@ -23,11 +23,27 @@ import com.afnan.silencer.service.RingerModeController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(viewModel: DashboardViewModel, onManageSchedules: () -> Unit) {
+fun DashboardScreen(
+    viewModel: DashboardViewModel, 
+    onManageSchedules: () -> Unit,
+    onFixPermissions: () -> Unit
+) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val controller = remember { RingerModeController(context) }
     
+    val notificationManager = remember { context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager }
+    val alarmManager = remember { context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager }
+    
+    // Check permissions whenever the screen becomes visible
+    var permissionsGranted by remember { mutableStateOf(true) }
+    
+    DisposableEffect(Unit) {
+        permissionsGranted = notificationManager.isNotificationPolicyAccessGranted && 
+                             (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms())
+        onDispose { }
+    }
+
     var showOverrideDialog by remember { mutableStateOf(false) }
     var selectedOverrideMode by remember { mutableStateOf(RingerMode.NORMAL) }
 
@@ -50,6 +66,26 @@ fun DashboardScreen(viewModel: DashboardViewModel, onManageSchedules: () -> Unit
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (!permissionsGranted) {
+                Surface(
+                    onClick = onFixPermissions,
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.NotificationsOff, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Permissions Revoked", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error)
+                            Text("Schedules won't work. Tap to fix.", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
 
             Text(
                 text = "Dashboard",

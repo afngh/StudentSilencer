@@ -22,7 +22,8 @@ data class ScheduleEditUiState(
     val targetMode: RingerMode = RingerMode.SILENT,
     val isEnabled: Boolean = true,
     val isNew: Boolean = true,
-    val isSaved: Boolean = false
+    val isSaved: Boolean = false,
+    val error: String? = null
 )
 
 class ScheduleEditViewModel(
@@ -80,6 +81,19 @@ class ScheduleEditViewModel(
 
     fun saveSchedule() {
         val state = _uiState.value
+        
+        // --- VALIDATION ---
+        if (state.daysOfWeek.isEmpty()) {
+            _uiState.value = _uiState.value.copy(error = "Please select at least one day.")
+            return
+        }
+        if (state.startTimeMinutes == state.endTimeMinutes) {
+            _uiState.value = _uiState.value.copy(error = "Start and End time cannot be the same.")
+            return
+        }
+        // Clear error if validation passes
+        _uiState.value = _uiState.value.copy(error = null)
+
         val schedule = Schedule(
             id = state.id,
             startTimeMinutes = state.startTimeMinutes,

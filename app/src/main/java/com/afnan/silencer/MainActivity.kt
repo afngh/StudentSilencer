@@ -31,6 +31,26 @@ import com.afnan.silencer.ui.schedule.ScheduleListScreen
 import com.afnan.silencer.ui.schedule.ScheduleListViewModel
 import com.afnan.silencer.ui.theme.SilencerTheme
 
+/**
+ * --- APP ARCHITECTURE SUMMARY ---
+ * 
+ * 1. UI LAYER (Screens & ViewModels):
+ *    - MainActivity & MainNavigation: The entry point using Compose NavHost.
+ *    - Dashboard: The main hub. ViewModel handles real-time UI state.
+ *    - ScheduleList/Edit: Managing user rules.
+ * 
+ * 2. SERVICE LAYER (The "Engine"):
+ *    - RingerModeController: Directly interacts with AudioManager/NotificationManager.
+ *    - ScheduleAlarmScheduler: Schedules the exact timing via Android's AlarmManager.
+ * 
+ * 3. DATA LAYER (Persistence):
+ *    - Room Database (AppDatabase): Saves schedules so they survive reboots.
+ *    - ScheduleRepository: The middleman between the DB and the UI.
+ * 
+ * 4. SYSTEM LAYER (Receivers):
+ *    - ScheduleTriggerReceiver: Wakes up when an alarm fires to flip the ringer switch.
+ *    - BootReceiver: Reschedules all alarms when the phone is turned on.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +107,8 @@ fun MainNavigation() {
             )
             DashboardScreen(
                 viewModel = dashboardViewModel,
-                onManageSchedules = { navController.navigate("schedule_list") }
+                onManageSchedules = { navController.navigate("schedule_list") },
+                onFixPermissions = { navController.navigate("onboarding") }
             )
         }
 
