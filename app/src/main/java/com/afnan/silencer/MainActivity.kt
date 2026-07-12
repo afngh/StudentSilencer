@@ -80,7 +80,16 @@ fun MainNavigation() {
     val repository = remember { ScheduleRepository(database.scheduleDao()) }
     val alarmScheduler = remember { ScheduleAlarmScheduler(context) }
 
-    NavHost(navController = navController, startDestination = "onboarding") {
+    val notificationManager = remember { context.getSystemService(android.content.Context.NOTIFICATION_SERVICE) as android.app.NotificationManager }
+    val alarmManager = remember { context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager }
+    val initialRoute = if (notificationManager.isNotificationPolicyAccessGranted && 
+        (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms())) {
+        "dashboard"
+    } else {
+        "onboarding"
+    }
+
+    NavHost(navController = navController, startDestination = initialRoute) {
         
         // 1. Onboarding Screen
         composable("onboarding") {

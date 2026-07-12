@@ -48,8 +48,8 @@ fun ScheduleListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddSchedule,
-                containerColor = Color.Black,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = MaterialTheme.colorScheme.surface,
                 shape = MaterialTheme.shapes.large
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = "Add Schedule")
@@ -104,8 +104,8 @@ fun ScheduleListScreen(
                                         checked = schedule.isEnabled,
                                         onCheckedChange = { viewModel.toggleSchedule(schedule, it) },
                                         colors = SwitchDefaults.colors(
-                                            checkedThumbColor = Color.White,
-                                            checkedTrackColor = Color.Black
+                                            checkedThumbColor = MaterialTheme.colorScheme.surface,
+                                            checkedTrackColor = MaterialTheme.colorScheme.onSurface
                                         )
                                     )
                                     IconButton(onClick = { showDeleteDialog = true }) {
@@ -131,10 +131,10 @@ fun ScheduleListScreen(
                                 },
                                 dismissButton = {
                                     TextButton(onClick = { showDeleteDialog = false }) {
-                                        Text("Cancel", color = Color.Black)
+                                        Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 },
-                                containerColor = Color.White
+                                containerColor = MaterialTheme.colorScheme.surface
                             )
                         }
                     }

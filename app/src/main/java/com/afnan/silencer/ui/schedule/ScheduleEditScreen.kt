@@ -73,7 +73,6 @@ fun ScheduleEditScreen(
             )
 
             SectionHeader("Time range")
-            // Simplified for the demo, in a real app these would open pickers
             TimeSelectionRow("Start Time", uiState.startTimeMinutes) { h, m ->
                 viewModel.updateStartTime(h * 60 + m)
             }
@@ -94,8 +93,8 @@ fun ScheduleEditScreen(
                         onClick = { viewModel.toggleDay(dayNum) },
                         label = { Text(day) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color.Black,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.onSurface,
+                            selectedLabelColor = MaterialTheme.colorScheme.surface
                         )
                     )
                 }
@@ -112,8 +111,8 @@ fun ScheduleEditScreen(
                         onClick = { viewModel.updateMode(mode) },
                         label = { Text(mode.name) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color.Black,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.onSurface,
+                            selectedLabelColor = MaterialTheme.colorScheme.surface
                         )
                     )
                 }
@@ -136,7 +135,10 @@ fun ScheduleEditScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Text("Save Schedule", fontWeight = FontWeight.Bold)
             }
@@ -161,7 +163,7 @@ fun TimeSelectionRow(label: String, totalMinutes: Int, onTimeSelected: (Int, Int
         trailing = {
             StatusText(
                 text = formatTime(totalMinutes),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 onClick = { showPicker = true }
             )
         },
@@ -175,15 +177,15 @@ fun TimeSelectionRow(label: String, totalMinutes: Int, onTimeSelected: (Int, Int
                 TextButton(onClick = {
                     onTimeSelected(timePickerState.hour, timePickerState.minute)
                     showPicker = false
-                }) { Text("OK", color = Color.Black) }
+                }) { Text("OK", color = MaterialTheme.colorScheme.onSurface) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text("Cancel", color = Color.Gray) }
+                TextButton(onClick = { showPicker = false }) { Text("Cancel", color = MaterialTheme.colorScheme.outline) }
             },
             text = {
                 TimePicker(state = timePickerState)
             },
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }

@@ -162,9 +162,9 @@ fun PermissionOnboardingScreen(onContinue: () -> Unit) {
                 enabled = isDndGranted && isExactAlarmGranted,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,
-                    contentColor = Color.White,
-                    disabledContainerColor = Color.LightGray
+                    containerColor = MaterialTheme.colorScheme.onSurface,
+                    contentColor = MaterialTheme.colorScheme.surface,
+                    disabledContainerColor = MaterialTheme.colorScheme.outlineVariant
                 )
             ) {
                 Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)

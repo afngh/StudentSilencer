@@ -74,7 +74,7 @@ fun DashboardScreen(
             if (!permissionsGranted) {
                 Surface(
                     onClick = onFixPermissions,
-                    color = Color(0xFFFDECEA),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
                     shape = MaterialTheme.shapes.medium,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 ) {
@@ -82,11 +82,11 @@ fun DashboardScreen(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = Color(0xFFD32F2F))
+                        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Permissions Revoked", style = MaterialTheme.typography.labelLarge, color = Color(0xFFD32F2F))
-                            Text("Schedules won't work. Tap to fix.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFD32F2F))
+                            Text("Permissions Revoked", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onErrorContainer)
+                            Text("Schedules won't work. Tap to fix.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
                         }
                     }
                 }
@@ -131,7 +131,10 @@ fun DashboardScreen(
                         showOverrideDialog = true
                     },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSurface,
+                        contentColor = MaterialTheme.colorScheme.surface
+                    ),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text("Silent")
@@ -142,9 +145,12 @@ fun DashboardScreen(
                         showOverrideDialog = true
                     },
                     modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium
+                    shape = MaterialTheme.shapes.medium,
+                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
+                    )
                 ) {
-                    Text("Normal", color = Color.Black)
+                    Text("Normal", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
 
@@ -158,7 +164,12 @@ fun DashboardScreen(
             ) {
                 SectionHeader("Upcoming Schedules")
                 TextButton(onClick = onManageSchedules) {
-                    Text("Manage All", color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                    Text(
+                        "Manage All", 
+                        color = MaterialTheme.colorScheme.onSurface, 
+                        fontWeight = FontWeight.SemiBold, 
+                        fontSize = 12.sp
+                    )
                 }
             }
             
@@ -171,7 +182,10 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = onManageSchedules,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.onSurface,
+                            contentColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
                         Icon(Icons.Outlined.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -208,8 +222,8 @@ fun DashboardScreen(
 @Composable
 fun CurrentModeDisplay(mode: RingerMode) {
     val (icon, label, color) = when (mode) {
-        RingerMode.NORMAL -> Triple(Icons.Outlined.Notifications, "NORMAL", Color.Black)
-        RingerMode.VIBRATE -> Triple(Icons.Outlined.VolumeUp, "VIBRATE", Color.DarkGray)
+        RingerMode.NORMAL -> Triple(Icons.Outlined.Notifications, "NORMAL", MaterialTheme.colorScheme.onSurface)
+        RingerMode.VIBRATE -> Triple(Icons.Outlined.VolumeUp, "VIBRATE", MaterialTheme.colorScheme.secondary)
         RingerMode.SILENT -> Triple(Icons.Outlined.VolumeOff, "SILENT", Color(0xFFD32F2F))
         RingerMode.DND -> Triple(Icons.Outlined.DoNotDisturbOn, "DND", Color(0xFF5B53D6))
     }
@@ -239,13 +253,13 @@ fun OverrideDurationDialog(onDismiss: () -> Unit, onConfirm: (Int?) -> Unit) {
         text = { Text("How long should this mode stay active?") },
         confirmButton = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                TextButton(onClick = { onConfirm(30) }, modifier = Modifier.fillMaxWidth()) { Text("30 Minutes", color = Color.Black) }
-                TextButton(onClick = { onConfirm(60) }, modifier = Modifier.fillMaxWidth()) { Text("1 Hour", color = Color.Black) }
-                TextButton(onClick = { onConfirm(null) }, modifier = Modifier.fillMaxWidth()) { Text("Indefinitely", color = Color.Black) }
+                TextButton(onClick = { onConfirm(30) }, modifier = Modifier.fillMaxWidth()) { Text("30 Minutes", color = MaterialTheme.colorScheme.onSurface) }
+                TextButton(onClick = { onConfirm(60) }, modifier = Modifier.fillMaxWidth()) { Text("1 Hour", color = MaterialTheme.colorScheme.onSurface) }
+                TextButton(onClick = { onConfirm(null) }, modifier = Modifier.fillMaxWidth()) { Text("Indefinitely", color = MaterialTheme.colorScheme.onSurface) }
                 TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cancel", color = Color(0xFFD32F2F)) }
             }
         },
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.large
     )
 }

@@ -77,7 +77,7 @@ fun StatusText(text: String, color: Color, onClick: () -> Unit) {
         text = text,
         style = MaterialTheme.typography.bodyMedium,
         color = color,
-        modifier = Modifier.clickable { onClick() }
+        modifier = Modifier.clickable { onClick() }.padding(horizontal = 4.dp)
     )
 }
 
