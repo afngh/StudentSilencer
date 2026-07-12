@@ -20,8 +20,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SilencerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                    HomeScreen(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -31,17 +30,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun HomeScreen(modifier: Modifier = Modifier) {
     Text(
-        text = "FUCK YOU $name!",
+        text = "Welcome to SilentScheduler!\nScaffolding is ready.",
         modifier = modifier
     )
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun HomeScreenPreview() {
     SilencerTheme {
-        Greeting("ANDRIOD")
+        HomeScreen()
     }
 }
