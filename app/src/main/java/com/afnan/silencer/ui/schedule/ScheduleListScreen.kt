@@ -5,22 +5,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.afnan.silencer.data.RingerMode
 import com.afnan.silencer.data.Schedule
+import com.afnan.silencer.ui.components.SectionHeader
+import com.afnan.silencer.ui.components.SettingsItem
+import com.afnan.silencer.ui.components.StatusText
+import com.afnan.silencer.ui.components.formatTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,149 +35,113 @@ fun ScheduleListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Schedules") },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Text("←") // Simple back button for now
+                        Icon(Icons.Outlined.KeyboardArrowLeft, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddSchedule) {
-                Icon(Icons.Default.Add, contentDescription = "Add Schedule")
+            FloatingActionButton(
+                onClick = onAddSchedule,
+                containerColor = Color.Black,
+                contentColor = Color.White,
+                shape = MaterialTheme.shapes.large
+            ) {
+                Icon(Icons.Outlined.Add, contentDescription = "Add Schedule")
             }
         }
     ) { padding ->
-        if (schedules.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.NotificationsOff,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "No schedules set up yet.",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                    Text(
-                        "Tap the + button to create your first rule!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp)
+        ) {
+            Text(
+                text = "My Schedules",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            if (schedules.isEmpty()) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Outlined.NotificationsOff,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "No schedules active",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
                 }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(schedules) { schedule ->
-                    var showDeleteDialog by remember { mutableStateOf(false) }
-                    var scheduleToDelete by remember { mutableStateOf<Schedule?>(null) }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    items(schedules) { schedule ->
+                        var showDeleteDialog by remember { mutableStateOf(false) }
 
-                    ScheduleCard(
-                        schedule = schedule,
-                        onToggle = { enabled -> viewModel.toggleSchedule(schedule, enabled) },
-                        onDelete = { 
-                            scheduleToDelete = schedule
-                            showDeleteDialog = true
-                        },
-                        onClick = { onEditSchedule(schedule.id) }
-                    )
-
-                    if (showDeleteDialog && scheduleToDelete != null) {
-                        AlertDialog(
-                            onDismissRequest = { showDeleteDialog = false },
-                            title = { Text("Delete Schedule?") },
-                            text = { Text("Are you sure you want to remove this schedule? This cannot be undone.") },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        scheduleToDelete?.let { viewModel.deleteSchedule(it) }
-                                        showDeleteDialog = false
-                                    },
-                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                                ) {
-                                    Text("Delete")
+                        SettingsItem(
+                            icon = getModeIcon(schedule.targetMode),
+                            title = "${formatTime(schedule.startTimeMinutes)} - ${formatTime(schedule.endTimeMinutes)}",
+                            subtitle = "${schedule.targetMode} • ${formatDays(schedule.daysOfWeek)}",
+                            trailing = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Switch(
+                                        checked = schedule.isEnabled,
+                                        onCheckedChange = { viewModel.toggleSchedule(schedule, it) },
+                                        colors = SwitchDefaults.colors(
+                                            checkedThumbColor = Color.White,
+                                            checkedTrackColor = Color.Black
+                                        )
+                                    )
+                                    IconButton(onClick = { showDeleteDialog = true }) {
+                                        Icon(Icons.Outlined.Delete, contentDescription = "Delete", tint = Color(0xFFD32F2F))
+                                    }
                                 }
                             },
-                            dismissButton = {
-                                TextButton(onClick = { showDeleteDialog = false }) {
-                                    Text("Cancel")
-                                }
-                            }
+                            onClick = { onEditSchedule(schedule.id) }
                         )
+
+                        if (showDeleteDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteDialog = false },
+                                title = { Text("Delete Schedule?") },
+                                text = { Text("This will permanently remove this rule.") },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.deleteSchedule(schedule)
+                                        showDeleteDialog = false
+                                    }) {
+                                        Text("Delete", color = Color(0xFFD32F2F))
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDeleteDialog = false }) {
+                                        Text("Cancel", color = Color.Black)
+                                    }
+                                },
+                                containerColor = Color.White
+                            )
+                        }
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-fun ScheduleCard(
-    schedule: Schedule,
-    onToggle: (Boolean) -> Unit,
-    onDelete: () -> Unit,
-    onClick: () -> Unit
-) {
-    val startTime = formatTime(schedule.startTimeMinutes)
-    val endTime = formatTime(schedule.endTimeMinutes)
-    
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Mode Icon
-            Icon(
-                imageVector = getModeIcon(schedule.targetMode),
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "$startTime - $endTime", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(text = "Days: ${formatDays(schedule.daysOfWeek)}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Mode: ${schedule.targetMode}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-            }
-            
-            Switch(
-                checked = schedule.isEnabled,
-                onCheckedChange = onToggle
-            )
-            
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
-            }
-        }
-    }
-}
-
-fun formatTime(minutes: Int): String {
-    val hour = minutes / 60
-    val minute = minutes % 60
-    val amPm = if (hour < 12) "AM" else "PM"
-    val displayHour = if (hour == 0) 12 else if (hour > 12) hour - 12 else hour
-    return String.format("%02d:%02d %s", displayHour, minute, amPm)
 }
 
 fun formatDays(days: String): String {
@@ -190,9 +154,9 @@ fun formatDays(days: String): String {
 
 fun getModeIcon(mode: RingerMode): ImageVector {
     return when (mode) {
-        RingerMode.NORMAL -> Icons.Default.Notifications
-        RingerMode.VIBRATE -> Icons.Default.VolumeUp
-        RingerMode.SILENT -> Icons.Default.VolumeOff
-        RingerMode.DND -> Icons.Default.NotificationsOff
+        RingerMode.NORMAL -> Icons.Outlined.Notifications
+        RingerMode.VIBRATE -> Icons.Outlined.VolumeUp
+        RingerMode.SILENT -> Icons.Outlined.VolumeOff
+        RingerMode.DND -> Icons.Outlined.DoNotDisturbOn
     }
 }

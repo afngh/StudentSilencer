@@ -29,6 +29,7 @@ import com.afnan.silencer.ui.schedule.ScheduleEditScreen
 import com.afnan.silencer.ui.schedule.ScheduleEditViewModel
 import com.afnan.silencer.ui.schedule.ScheduleListScreen
 import com.afnan.silencer.ui.schedule.ScheduleListViewModel
+import com.afnan.silencer.ui.settings.SettingsScreen
 import com.afnan.silencer.ui.theme.SilencerTheme
 
 /**
@@ -104,7 +105,9 @@ fun MainNavigation() {
             DashboardScreen(
                 viewModel = dashboardViewModel,
                 onManageSchedules = { navController.navigate("schedule_list") },
-                onFixPermissions = { navController.navigate("onboarding") }
+                onFixPermissions = { navController.navigate("onboarding") },
+                onSettings = { navController.navigate("settings") },
+                onEditSchedule = { id -> navController.navigate("schedule_edit/$id") }
             )
         }
 
@@ -144,6 +147,11 @@ fun MainNavigation() {
                 onSaveSuccess = { navController.popBackStack() },
                 onBack = { navController.popBackStack() }
             )
+        }
+
+        // 5. Settings Screen
+        composable("settings") {
+            SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }

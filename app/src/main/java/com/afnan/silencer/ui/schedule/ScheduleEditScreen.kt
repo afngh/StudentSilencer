@@ -3,14 +3,24 @@ package com.afnan.silencer.ui.schedule
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.afnan.silencer.data.RingerMode
+import com.afnan.silencer.ui.components.SectionHeader
+import com.afnan.silencer.ui.components.SettingsItem
+import com.afnan.silencer.ui.components.StatusText
+import com.afnan.silencer.ui.components.formatTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,12 +33,10 @@ fun ScheduleEditScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Load data once when screen opens
     LaunchedEffect(scheduleId) {
         viewModel.loadSchedule(scheduleId)
     }
 
-    // Go back once saved
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
             Toast.makeText(context, "Schedule saved!", Toast.LENGTH_SHORT).show()
@@ -39,24 +47,33 @@ fun ScheduleEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (uiState.isNew) "New Schedule" else "Edit Schedule") },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Text("←")
+                        Icon(Icons.Outlined.KeyboardArrowLeft, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            // 1. Time Selection
+            Text(
+                text = if (uiState.isNew) "New Schedule" else "Edit Schedule",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            SectionHeader("Time range")
+            // Simplified for the demo, in a real app these would open pickers
             TimeSelectionRow("Start Time", uiState.startTimeMinutes) { h, m ->
                 viewModel.updateStartTime(h * 60 + m)
             }
@@ -64,8 +81,7 @@ fun ScheduleEditScreen(
                 viewModel.updateEndTime(h * 60 + m)
             }
 
-            // 2. Day Selection
-            Text("Active Days", style = MaterialTheme.typography.titleMedium)
+            SectionHeader("Active days")
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -76,35 +92,53 @@ fun ScheduleEditScreen(
                     FilterChip(
                         selected = uiState.daysOfWeek.contains(dayNum),
                         onClick = { viewModel.toggleDay(dayNum) },
-                        label = { Text(day) }
+                        label = { Text(day) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color.Black,
+                            selectedLabelColor = Color.White
+                        )
                     )
                 }
             }
 
-            // 3. Mode Selection
-            Text("Target Mode", style = MaterialTheme.typography.titleMedium)
-            RingerModeSelector(
-                selectedMode = uiState.targetMode,
-                onModeSelected = { viewModel.updateMode(it) }
-            )
+            SectionHeader("Target mode")
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                RingerMode.entries.forEach { mode ->
+                    FilterChip(
+                        selected = uiState.targetMode == mode,
+                        onClick = { viewModel.updateMode(mode) },
+                        label = { Text(mode.name) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color.Black,
+                            selectedLabelColor = Color.White
+                        )
+                    )
+                }
+            }
 
-            // 4. Error Message (if any)
             uiState.error?.let {
                 Text(
                     text = it,
-                    color = MaterialTheme.colorScheme.error,
+                    color = Color(0xFFD32F2F),
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.padding(top = 16.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Button(
                 onClick = { viewModel.saveSchedule() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Save Schedule")
+                Text("Save Schedule", fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -114,25 +148,25 @@ fun ScheduleEditScreen(
 @Composable
 fun TimeSelectionRow(label: String, totalMinutes: Int, onTimeSelected: (Int, Int) -> Unit) {
     var showPicker by remember { mutableStateOf(false) }
-    val hour = totalMinutes / 60
-    val minute = totalMinutes % 60
     
     val timePickerState = rememberTimePickerState(
-        initialHour = hour,
-        initialMinute = minute,
+        initialHour = totalMinutes / 60,
+        initialMinute = totalMinutes % 60,
         is24Hour = false
     )
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, style = MaterialTheme.typography.titleMedium)
-        Button(onClick = { showPicker = true }) {
-            Text(formatTime(totalMinutes))
-        }
-    }
+    SettingsItem(
+        icon = Icons.Outlined.AccessTime,
+        title = label,
+        trailing = {
+            StatusText(
+                text = formatTime(totalMinutes),
+                color = Color.Black,
+                onClick = { showPicker = true }
+            )
+        },
+        onClick = { showPicker = true }
+    )
 
     if (showPicker) {
         AlertDialog(
@@ -141,31 +175,15 @@ fun TimeSelectionRow(label: String, totalMinutes: Int, onTimeSelected: (Int, Int
                 TextButton(onClick = {
                     onTimeSelected(timePickerState.hour, timePickerState.minute)
                     showPicker = false
-                }) { Text("OK") }
+                }) { Text("OK", color = Color.Black) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showPicker = false }) { Text("Cancel", color = Color.Gray) }
             },
             text = {
                 TimePicker(state = timePickerState)
-            }
+            },
+            containerColor = Color.White
         )
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun RingerModeSelector(selectedMode: RingerMode, onModeSelected: (RingerMode) -> Unit) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        RingerMode.entries.forEach { mode ->
-            ElevatedFilterChip(
-                selected = selectedMode == mode,
-                onClick = { onModeSelected(mode) },
-                label = { Text(mode.name) }
-            )
-        }
     }
 }
