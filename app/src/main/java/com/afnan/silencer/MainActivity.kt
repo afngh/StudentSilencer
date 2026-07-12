@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.afnan.silencer.data.AppDatabase
+import com.afnan.silencer.data.PreferenceManager
 import com.afnan.silencer.data.ScheduleRepository
 import com.afnan.silencer.service.ScheduleAlarmScheduler
 import com.afnan.silencer.ui.dashboard.DashboardScreen
@@ -30,6 +31,7 @@ import com.afnan.silencer.ui.schedule.ScheduleEditViewModel
 import com.afnan.silencer.ui.schedule.ScheduleListScreen
 import com.afnan.silencer.ui.schedule.ScheduleListViewModel
 import com.afnan.silencer.ui.settings.SettingsScreen
+import com.afnan.silencer.ui.settings.SettingsViewModel
 import com.afnan.silencer.ui.theme.SilencerTheme
 
 /**
@@ -57,8 +59,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SilencerTheme {
-                MainNavigation()
+            val context = LocalContext.current
+            val preferenceManager = remember { PreferenceManager(context) }
+            val isDarkMode by preferenceManager.isDarkMode.collectAsState(initial = false)
+
+            SilencerTheme(darkTheme = isDarkMode) {
+                MainNavigation(preferenceManager)
             }
         }
     }
@@ -71,7 +77,7 @@ class MainActivity : ComponentActivity() {
  * Android knows exactly which screen to go back to.
  */
 @Composable
-fun MainNavigation() {
+fun MainNavigation(preferenceManager: PreferenceManager) {
     val context = LocalContext.current
     val navController = rememberNavController()
     
@@ -160,7 +166,17 @@ fun MainNavigation() {
 
         // 5. Settings Screen
         composable("settings") {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            val settingsViewModel: SettingsViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return SettingsViewModel(preferenceManager, repository) as T
+                    }
+                }
+            )
+            SettingsScreen(
+                viewModel = settingsViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

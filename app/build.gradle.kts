@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
+    kotlin("plugin.serialization") version "2.1.0"
 }
 
 android {
@@ -58,6 +59,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
+    
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
+
+    // JSON serialization
+    implementation(libs.kotlinx.serialization.json)
     
     // Room
     implementation(libs.room.runtime)

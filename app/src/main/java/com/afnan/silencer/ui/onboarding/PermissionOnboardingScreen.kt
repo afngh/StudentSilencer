@@ -24,10 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.afnan.silencer.ui.components.AppLogo
 import com.afnan.silencer.ui.components.SectionHeader
 import com.afnan.silencer.ui.components.SettingsItem
 import com.afnan.silencer.ui.components.StatusText
@@ -68,9 +70,6 @@ fun PermissionOnboardingScreen(onContinue: () -> Unit) {
         }
     }
 
-    val successGreen = Color(0xFF4CAF50)
-    val errorRed = Color(0xFFD32F2F)
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -80,32 +79,40 @@ fun PermissionOnboardingScreen(onContinue: () -> Unit) {
                 .padding(padding)
                 .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            AppLogo()
+
+            Spacer(modifier = Modifier.height(32.dp))
             
             Text(
-                text = "Permissions Needed",
+                text = "Let's Get Set Up",
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
             )
             
             Text(
-                text = "We need a few permissions to automate your ringer modes.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+                text = "Silencer needs a few tools to keep your phone quiet at the right times.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Medium
             )
 
-            SectionHeader("Required Permissions")
+            SectionHeader("Permissions")
             SettingsItem(
                 icon = Icons.Outlined.Adjust,
-                title = "Do Not Disturb Access",
-                subtitle = "Required to change ringer mode",
+                title = "Do Not Disturb",
+                subtitle = "To control your ringer mode",
                 trailing = {
                     StatusText(
                         text = if (isDndGranted) "Granted" else "Grant",
-                        color = if (isDndGranted) successGreen else errorRed,
+                        color = if (isDndGranted) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary,
                         onClick = {
                             context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
                         }
@@ -115,11 +122,11 @@ fun PermissionOnboardingScreen(onContinue: () -> Unit) {
             SettingsItem(
                 icon = Icons.Outlined.Timer,
                 title = "Exact Alarms",
-                subtitle = "Needed for precise scheduling",
+                subtitle = "For precise schedule timing",
                 trailing = {
                     StatusText(
                         text = if (isExactAlarmGranted) "Granted" else "Grant",
-                        color = if (isExactAlarmGranted) successGreen else errorRed,
+                        color = if (isExactAlarmGranted) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary,
                         onClick = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                 val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
@@ -132,15 +139,15 @@ fun PermissionOnboardingScreen(onContinue: () -> Unit) {
                 }
             )
 
-            SectionHeader("Recommended")
+            SectionHeader("System")
             SettingsItem(
                 icon = Icons.Outlined.BatteryChargingFull,
-                title = "Battery Optimization",
-                subtitle = "Prevents system from killing the app",
+                title = "Battery Unrestricted",
+                subtitle = "Keep schedules alive in background",
                 trailing = {
                     StatusText(
-                        text = if (isBatteryExempt) "Granted" else "Fix",
-                        color = if (isBatteryExempt) successGreen else errorRed,
+                        text = if (isBatteryExempt) "Optimized" else "Fix",
+                        color = if (isBatteryExempt) Color(0xFF4CAF50) else Color(0xFFF44336),
                         onClick = {
                             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                                 data = Uri.parse("package:${context.packageName}")
@@ -158,16 +165,17 @@ fun PermissionOnboardingScreen(onContinue: () -> Unit) {
                 onClick = onContinue,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(64.dp)
+                    .padding(bottom = 8.dp),
                 enabled = isDndGranted && isExactAlarmGranted,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface,
-                    contentColor = MaterialTheme.colorScheme.surface,
-                    disabledContainerColor = MaterialTheme.colorScheme.outlineVariant
-                )
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
-                Text("Continue", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Start Silencing", fontWeight = FontWeight.Black, fontSize = 18.sp)
             }
         }
     }

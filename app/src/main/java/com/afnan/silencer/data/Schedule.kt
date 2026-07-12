@@ -2,10 +2,12 @@ package com.afnan.silencer.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 /**
  * This is a "Target Mode" for the phone's ringer.
  */
+@Serializable
 enum class RingerMode {
     SILENT, VIBRATE, NORMAL, DND
 }
@@ -14,6 +16,7 @@ enum class RingerMode {
  * This class represents a single time schedule in the database.
  * Each row in the "schedules" table will look like this.
  */
+@Serializable
 @Entity(tableName = "schedules")
 data class Schedule(
     @PrimaryKey(autoGenerate = true) 

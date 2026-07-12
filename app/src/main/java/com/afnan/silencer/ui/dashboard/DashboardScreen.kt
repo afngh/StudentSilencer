@@ -3,14 +3,15 @@ package com.afnan.silencer.ui.dashboard
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,7 +20,7 @@ import com.afnan.silencer.data.RingerMode
 import com.afnan.silencer.service.RingerModeController
 import com.afnan.silencer.ui.components.SectionHeader
 import com.afnan.silencer.ui.components.SettingsItem
-import com.afnan.silencer.ui.components.StatusText
+import com.afnan.silencer.ui.components.formatTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +52,7 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
+                title = { Text("Silencer", fontWeight = FontWeight.Black) },
                 actions = {
                     IconButton(onClick = onManageSchedules) {
                         Icon(Icons.Outlined.Notifications, contentDescription = "Manage Schedules")
@@ -74,19 +75,22 @@ fun DashboardScreen(
             if (!permissionsGranted) {
                 Surface(
                     onClick = onFixPermissions,
-                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .shadow(4.dp, RoundedCornerShape(20.dp))
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+                        Icon(Icons.Outlined.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Permissions Revoked", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onErrorContainer)
-                            Text("Schedules won't work. Tap to fix.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                            Text("Permissions Revoked", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                            Text("Schedules won't work. Tap to fix.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
@@ -95,102 +99,89 @@ fun DashboardScreen(
             Text(
                 text = "Dashboard",
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Black,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // 1. Current Mode Display (Minimalist)
+            // 1. Current Mode Display (Maximalist)
             Box(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CurrentModeDisplay(uiState.currentMode)
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // 2. Next Change Info (Minimalist)
-            SectionHeader("Schedule Status")
+            // 2. Schedule Status
+            SectionHeader("Quick Status")
             SettingsItem(
                 icon = Icons.Outlined.Timer,
                 title = uiState.nextChangeTime,
                 subtitle = uiState.nextChangeLabel
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             // 3. Manual Override Buttons
-            SectionHeader("Manual Overrides")
+            SectionHeader("Manual Control")
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
                     onClick = {
                         selectedOverrideMode = RingerMode.SILENT
                         showOverrideDialog = true
                     },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSurface,
-                        contentColor = MaterialTheme.colorScheme.surface
-                    ),
-                    shape = MaterialTheme.shapes.medium
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(64.dp)
+                        .shadow(8.dp, RoundedCornerShape(20.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text("Silent")
+                    Text("Silent", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
-                OutlinedButton(
+                Button(
                     onClick = {
                         selectedOverrideMode = RingerMode.NORMAL
                         showOverrideDialog = true
                     },
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium,
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
-                    )
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(64.dp)
+                        .shadow(8.dp, RoundedCornerShape(20.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text("Normal", color = MaterialTheme.colorScheme.onSurface)
+                    Text("Normal", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // 4. Small Preview of Schedules
+            // 4. Preview
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SectionHeader("Upcoming Schedules")
+                SectionHeader("Your Rules")
                 TextButton(onClick = onManageSchedules) {
-                    Text(
-                        "Manage All", 
-                        color = MaterialTheme.colorScheme.onSurface, 
-                        fontWeight = FontWeight.SemiBold, 
-                        fontSize = 12.sp
-                    )
+                    Text("VIEW ALL", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black, fontSize = 12.sp)
                 }
             }
             
             if (uiState.activeSchedules.isEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Button(
+                    onClick = onManageSchedules,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp)
+                        .shadow(4.dp, RoundedCornerShape(20.dp)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text("No schedules active", color = MaterialTheme.colorScheme.outline)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onManageSchedules,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onSurface,
-                            contentColor = MaterialTheme.colorScheme.surface
-                        )
-                    ) {
-                        Icon(Icons.Outlined.Add, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add Schedule")
-                    }
+                    Icon(Icons.Outlined.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Create Your First Schedule", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -198,7 +189,7 @@ fun DashboardScreen(
                         SettingsItem(
                             icon = Icons.Outlined.Schedule,
                             title = "${schedule.targetMode}",
-                            subtitle = "Active on: ${schedule.daysOfWeek}",
+                            subtitle = "Starts at ${formatTime(schedule.startTimeMinutes)}",
                             onClick = { onEditSchedule(schedule.id) }
                         )
                     }
@@ -222,26 +213,38 @@ fun DashboardScreen(
 @Composable
 fun CurrentModeDisplay(mode: RingerMode) {
     val (icon, label, color) = when (mode) {
-        RingerMode.NORMAL -> Triple(Icons.Outlined.Notifications, "NORMAL", MaterialTheme.colorScheme.onSurface)
+        RingerMode.NORMAL -> Triple(Icons.Outlined.Notifications, "NORMAL", MaterialTheme.colorScheme.primary)
         RingerMode.VIBRATE -> Triple(Icons.Outlined.VolumeUp, "VIBRATE", MaterialTheme.colorScheme.secondary)
-        RingerMode.SILENT -> Triple(Icons.Outlined.VolumeOff, "SILENT", Color(0xFFD32F2F))
+        RingerMode.SILENT -> Triple(Icons.Outlined.VolumeOff, "SILENT", Color(0xFFF44336))
         RingerMode.DND -> Triple(Icons.Outlined.DoNotDisturbOn, "DND", Color(0xFF5B53D6))
     }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = color
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
+    Surface(
+        modifier = Modifier
+            .size(160.dp)
+            .shadow(16.dp, RoundedCornerShape(40.dp)),
+        shape = RoundedCornerShape(40.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(72.dp),
+                tint = color
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = color
+            )
+        }
     }
 }
 
@@ -249,17 +252,35 @@ fun CurrentModeDisplay(mode: RingerMode) {
 fun OverrideDurationDialog(onDismiss: () -> Unit, onConfirm: (Int?) -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Manual Override") },
-        text = { Text("How long should this mode stay active?") },
+        title = { Text("Manual Switch", fontWeight = FontWeight.Black) },
+        text = { Text("How long should we stay in this mode?") },
         confirmButton = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                TextButton(onClick = { onConfirm(30) }, modifier = Modifier.fillMaxWidth()) { Text("30 Minutes", color = MaterialTheme.colorScheme.onSurface) }
-                TextButton(onClick = { onConfirm(60) }, modifier = Modifier.fillMaxWidth()) { Text("1 Hour", color = MaterialTheme.colorScheme.onSurface) }
-                TextButton(onClick = { onConfirm(null) }, modifier = Modifier.fillMaxWidth()) { Text("Indefinitely", color = MaterialTheme.colorScheme.onSurface) }
-                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Cancel", color = Color(0xFFD32F2F)) }
+                Button(
+                    onClick = { onConfirm(30) },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("30 Minutes", fontWeight = FontWeight.Bold) }
+                
+                Button(
+                    onClick = { onConfirm(60) },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("1 Hour", fontWeight = FontWeight.Bold) }
+                
+                Button(
+                    onClick = { onConfirm(null) },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) { Text("Indefinitely", fontWeight = FontWeight.Bold) }
+                
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("CANCEL", color = Color(0xFFF44336), fontWeight = FontWeight.Black) }
             }
         },
         containerColor = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.large
+        shape = RoundedCornerShape(28.dp)
     )
 }
