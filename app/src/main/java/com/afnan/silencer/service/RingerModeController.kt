@@ -27,11 +27,11 @@ class RingerModeController(private val context: Context) {
 
         when (mode) {
             RingerMode.NORMAL -> {
-                notificationManager.interruptionFilter = NotificationManager.INTERRUPTION_FILTER_ALL
+                notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
                 audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
             }
             RingerMode.VIBRATE -> {
-                notificationManager.interruptionFilter = NotificationManager.INTERRUPTION_FILTER_ALL
+                notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
                 audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
             }
             RingerMode.SILENT -> {
@@ -40,7 +40,7 @@ class RingerModeController(private val context: Context) {
             }
             RingerMode.DND -> {
                 // This activates the actual "Do Not Disturb" mode icon in your status bar
-                notificationManager.interruptionFilter = NotificationManager.INTERRUPTION_FILTER_PRIORITY
+                notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
             }
         }
     }
